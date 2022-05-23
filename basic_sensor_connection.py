@@ -12,15 +12,40 @@ gpgga_info = "$GPGGA,"
 GPGGA_buffer = 0
 NMEA_buff = 0
 # GPIO Mode (BOARD / BCM)
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 
 # set GPIO Pins
-GPIO_TRIGGER = 18
-GPIO_ECHO = 24
+GPIO_TRIGGER = 12
+GPIO_ECHO = 18
+
 
 # set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
 GPIO.setup(GPIO_ECHO, GPIO.IN)
+
+servoPIN = 11
+GPIO.setup(servoPIN, GPIO.OUT)
+p = GPIO.PWM(servoPIN, 50) # GPIO 17 for PWM with 50Hz
+p.start(2.5) # Initialization
+
+def control_Servo():
+    p.ChangeDutyCycle(5)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(7.5)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(10)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(12.5)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(10)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(7.5)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(5)
+    time.sleep(0.5)
+    p.ChangeDutyCycle(2.5)
+    time.sleep(0.5)
+    
 
 
 def convert_to_degrees(raw_value):
@@ -34,7 +59,7 @@ def convert_to_degrees(raw_value):
 
 def get_tempdata():
 
-    humidity, temperature = Adafruit_DHT.read_retry(11, 4)
+    humidity, temperature = Adafruit_DHT.read_retry(11, 26)
 
     return humidity, temperature
 
@@ -60,7 +85,10 @@ def get_gpsdata():
         lat = convert_to_degrees(lat)
         longi = (float)(nmea_longitude)
         longi = convert_to_degrees(longi)
-
+    #gülüm buraya elsede ne yapılıcak bi onu giricen arkaya boş data yollama
+    else:
+        lat =0
+        longi=0
     return lat, longi
 
 
@@ -97,8 +125,10 @@ if __name__ == '__main__':
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
             time.sleep(1)
+            control_Servo()
 
         # Reset by pressing CTRL + C
     except KeyboardInterrupt:
+        p.stop()
         print("Software Stopped!")
         GPIO.cleanup()
