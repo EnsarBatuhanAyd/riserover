@@ -13,18 +13,15 @@ GPGGA_buffer = 0
 NMEA_buff = 0
 # GPIO Mode (BOARD / BCM)
 GPIO.setmode(GPIO.BOARD)
-
-# set GPIO Pins
-GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-servoPin = 17
+servoPin = 11
 GPIO.setup(servoPin, GPIO.OUT)
 servo = GPIO.PWM(servoPin, 50)
 servo.start(7)
 
-TRIG = 18
-ECHO = 24
+TRIG = 12
+ECHO = 18
 GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
 
