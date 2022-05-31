@@ -15,36 +15,104 @@ NMEA_buff = 0
 GPIO.setmode(GPIO.BOARD)
 
 # set GPIO Pins
-GPIO_TRIGGER = 12
-GPIO_ECHO = 18
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+servoPin = 17
+GPIO.setup(servoPin, GPIO.OUT)
+servo = GPIO.PWM(servoPin, 50)
+servo.start(7)
+
+TRIG = 18
+ECHO = 24
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
+
+targets = {}
 
 
-# set GPIO direction (IN / OUT)
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-GPIO.setup(GPIO_ECHO, GPIO.IN)
+class Target:
+    angle = -1
+    distance = -1
+    time = -1.0
+    color = ()
+    # initalization
+    def __init__(self, angle, distance):
+        self.angle = angle
+        self.distance = distance
+        self.time = time.time()
 
-servoPIN = 11
-GPIO.setup(servoPIN, GPIO.OUT)
-p = GPIO.PWM(servoPIN, 50) # GPIO 17 for PWM with 50Hz
-p.start(2.5) # Initialization
+def ultrasonicRead(GPIO, TRIG, ECHO):
+    
+    # settling the sensor
+    GPIO.output(TRIG, False)
+    # time.sleep(0.01)
 
-def control_Servo():
-    p.ChangeDutyCycle(5)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(7.5)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(10)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(12.5)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(10)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(7.5)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(5)
-    time.sleep(0.5)
-    p.ChangeDutyCycle(2.5)
-    time.sleep(0.5)
+    # send a signal
+    GPIO.output(TRIG, True)
+    time.sleep(0.0001)
+    GPIO.output(TRIG, False)
+
+    # catch a signal
+    error = 0
+    while GPIO.input(ECHO) == 0:
+        start_time = time.time()
+        error += 1
+        if error > 1000:
+            break
+    if error > 1000:
+        return -1
+
+    end_time = time.time()
+    while GPIO.input(ECHO) == 1:
+        end_time = time.time()
+
+    # calculate the distance 
+    total_time = end_time - start_time
+    distance = (34300 * total_time) / 2
+    distance = round(distance, 2)
+    # change the condition if the range is changed
+    if distance <= 50:
+        return distance
+    else:
+        return -1
+
+
+def radar():
+    for angle in range(0, 180):
+            
+        distance = ultrasonicRead(GPIO, TRIG, ECHO)
+        
+        # change the condition if the range is changed
+        if distance != -1 and distance <= 50:
+            targets[angle] = Target(angle, distance)
+            
+        print(angle, distance)
+        angle = 180 - angle
+        dc = 1.0 / 18.0 * angle + 2
+        servo.ChangeDutyCycle(dc)
+        time.sleep(0.001)
+            
+
+        # rotate from 180 to 0
+    for angle in range(180, 0, -1):
+            
+        distance = ultrasonicRead(GPIO, TRIG, ECHO)
+        
+        # change the condition if the range is changed
+        if distance != -1 and distance <= 50:
+            targets[angle] = Target(angle, distance)
+        
+        print( angle, distance)
+
+        angle = 180 - angle
+        dc = 1.0 / 18.0 * angle + 2
+        servo.ChangeDutyCycle(dc)
+
+        time.sleep(0.001)
+            
+        # detect if close is pressed to stop the program
+        
     
 
 
@@ -94,17 +162,17 @@ def get_gpsdata():
 
 def get_distancedata():
 
-    GPIO.output(GPIO_TRIGGER, True)  # set Trigger to HIGH
+    GPIO.output(TRIG, True)  # set Trigger to HIGH
     time.sleep(0.00001)  # set Trigger after 0.01ms to LOW
-    GPIO.output(GPIO_TRIGGER, False)
+    GPIO.output(TRIG, False)
 
     StartTime = time.time()
     StopTime = time.time()
 
-    while GPIO.input(GPIO_ECHO) == 0:  # save StartTime
+    while GPIO.input(ECHO) == 0:  # save StartTime
         StartTime = time.time()
 
-    while GPIO.input(GPIO_ECHO) == 1:  # save time of arrival
+    while GPIO.input(ECHO) == 1:  # save time of arrival
         StopTime = time.time()
 
     TimeElapsed = StopTime - StartTime   # time difference between start and arrival
@@ -120,15 +188,19 @@ if __name__ == '__main__':
             distance = get_distancedata()
             lat,longi = get_gpsdata()
             temperature, humidity = get_tempdata()
+            radarvalues= radar()
             print("Your Location =", lat , longi)
             print("Measured Distance = %.1f cm" % distance)
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
+            print("Radar = ", radarvalues) 
+            
             time.sleep(1)
-            control_Servo()
+           
 
         # Reset by pressing CTRL + C
     except KeyboardInterrupt:
-        p.stop()
-        print("Software Stopped!")
+        servo.stop()
         GPIO.cleanup()
+        print("Software Stopped!")
+        
