@@ -1,4 +1,10 @@
 # basic sensors integration
+from email.errors import ObsoleteHeaderDefect
+from xmlrpc.client import boolean
+import firebase_admin
+# from firebase_admin import db
+from firebase_admin import credentials
+from firebase_admin import firestore
 import serial
 import time
 import RPi.GPIO as GPIO
@@ -24,7 +30,6 @@ TRIG = 12
 ECHO = 18
 GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
-
 targets = {}
 
 
@@ -33,18 +38,18 @@ class Target:
     distance = -1
     time = -1.0
     color = ()
+  
     # initalization
-    def __init__(self, angle, distance):
+    def __init__(self, angle, distance ):
         self.angle = angle
         self.distance = distance
         self.time = time.time()
-
+      
 def ultrasonicRead(GPIO, TRIG, ECHO):
     
     # settling the sensor
     GPIO.output(TRIG, False)
     # time.sleep(0.01)
-
     # send a signal
     GPIO.output(TRIG, True)
     time.sleep(0.0001)
@@ -74,8 +79,8 @@ def ultrasonicRead(GPIO, TRIG, ECHO):
     else:
         return -1
 
-
 def radar():
+   
     for angle in range(0, 180):
             
         distance = ultrasonicRead(GPIO, TRIG, ECHO)
@@ -83,6 +88,8 @@ def radar():
         # change the condition if the range is changed
         if distance != -1 and distance <= 50:
             targets[angle] = Target(angle, distance)
+            
+
             
         print(angle, distance)
         angle = 180 - angle
@@ -99,6 +106,7 @@ def radar():
         # change the condition if the range is changed
         if distance != -1 and distance <= 50:
             targets[angle] = Target(angle, distance)
+           
         
         print( angle, distance)
 
@@ -111,8 +119,6 @@ def radar():
         # detect if close is pressed to stop the program
         
     
-
-
 def convert_to_degrees(raw_value):
     decimal_value = raw_value/100.00
     degrees = int(decimal_value)
@@ -120,6 +126,53 @@ def convert_to_degrees(raw_value):
     position = degrees + mm_mmmm
     position = "“%.4f" % (position)
     return position
+
+
+def database_maindata():
+    cred = credentials.ApplicationDefault()
+
+    cred = credentials.Certificate(
+    "./earthquake-dataset-firebase-adminsdk-5h31u-0bd9fb1990.json")
+
+    firebase_admin.initialize_app(cred,
+                              {'databaseURL': 'https://earthquake-dataset-default-rtdb.firebaseio.com/',
+                               'databaseAuthVariableOverride': None
+                               })
+    db = firestore.client()                               
+    data={
+            "Latitude": lat,
+            "Longitude": longi,
+            "Humidity": humidity,
+            "Temperature": temperature,
+          }
+
+        #Firestore Database Sending 
+    rf=db.collection("RoverMainData")
+    rf.add(data)                           
+    return rf
+
+def database_radar():
+    cred = credentials.ApplicationDefault()
+
+    cred = credentials.Certificate(
+    "./earthquake-dataset-firebase-adminsdk-5h31u-0bd9fb1990.json")
+
+    firebase_admin.initialize_app(cred,
+                              {'databaseURL': 'https://earthquake-dataset-default-rtdb.firebaseio.com/',
+                               'databaseAuthVariableOverride': None
+                               })
+    db1 = firestore.client()                               
+    data={
+            "Angle": angle,
+            "Distance": distance,
+            "Objex": objex,
+           
+          }
+
+        #Firestore Database Sending 
+    rf=db1.collection("RoverRadarData")
+    rf.add(data)  
+    return 0
 
 
 def get_tempdata():
@@ -157,41 +210,50 @@ def get_gpsdata():
     return lat, longi
 
 
-def get_distancedata():
+# def get_distancedata():
 
-    GPIO.output(TRIG, True)  # set Trigger to HIGH
-    time.sleep(0.00001)  # set Trigger after 0.01ms to LOW
-    GPIO.output(TRIG, False)
+#     GPIO.output(TRIG, True)  # set Trigger to HIGH
+#     time.sleep(0.00001)  # set Trigger after 0.01ms to LOW
+#     GPIO.output(TRIG, False)
 
-    StartTime = time.time()
-    StopTime = time.time()
+#     StartTime = time.time()
+#     StopTime = time.time()
 
-    while GPIO.input(ECHO) == 0:  # save StartTime
-        StartTime = time.time()
+#     while GPIO.input(ECHO) == 0:  # save StartTime
+#         StartTime = time.time()
 
-    while GPIO.input(ECHO) == 1:  # save time of arrival
-        StopTime = time.time()
+#     while GPIO.input(ECHO) == 1:  # save time of arrival
+#         StopTime = time.time()
 
-    TimeElapsed = StopTime - StartTime   # time difference between start and arrival
-    # multiply with the sonic speed (34300 cm/s) and divide by 2, because there and back
-    distance = (TimeElapsed * 34300) / 2
+#     TimeElapsed = StopTime - StartTime   # time difference between start and arrival
+#     # multiply with the sonic speed (34300 cm/s) and divide by 2, because there and back
+#     distance = (TimeElapsed * 34300) / 2
 
-    return distance
+#     return distance
 
 
 if __name__ == '__main__':
     try:
         while True:
-            distance = get_distancedata()
+            # distance = get_distancedata()
             lat,longi = get_gpsdata()
             temperature, humidity = get_tempdata()
             radarvalues= radar()
+            # Check all class 
+
             print("Your Location =", lat , longi)
             print("Measured Distance = %.1f cm" % distance)
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
+            # send main data database
+            database_maindata(lat,longi,temperature,humidity)
+
             print("Radar = ", radarvalues) 
-            
+            angle , distance , objex = radar()
+            print ("angle :" , angle ,"distance :" , distance ,"objex :" , objex)
+            # send radar database they will merge with image processing
+            database_maindata(angle,distance,objex)
+
             time.sleep(1)
            
 
