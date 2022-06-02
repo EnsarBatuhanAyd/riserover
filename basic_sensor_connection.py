@@ -252,7 +252,7 @@ if __name__ == '__main__':
             # Check all class 
 
             print("Your Location =", lat , longi)
-            print("Measured Distance = %.1f cm" % distance)
+            # print("Measured Distance = %.1f cm" % distance)
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
             # send main data database
