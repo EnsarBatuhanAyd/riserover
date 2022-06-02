@@ -92,7 +92,8 @@ def radar():
         if distance != -1 and distance <= 50:
             targets[angle] = Target(angle, distance , Target.objectex) 
             Target.objectex = 1
-            
+        else:
+            Target.objectex = 0 
 
             
         print(angle, distance , Target.objectex)
@@ -111,7 +112,8 @@ def radar():
         if distance != -1 and distance <= 50:
             targets[angle] = Target(angle, distance , Target.objectex) 
             Target.objectex = 1
-            
+        else:
+            Target.objectex = 0    
            
         
         print(angle, distance , Target.objectex)
