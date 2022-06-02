@@ -263,13 +263,13 @@ if __name__ == '__main__':
             # distance = get_distancedata()
             lat,longi = get_gpsdata()
             temperature, humidity = get_tempdata()
-            angle , distance = radar()
+            angle , distance , objectex = radar()
             # Check all class 
 
             print("Your Location =", lat , longi)
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
-            print("Angle = ", angle ,"Measured Distance = %.1f cm" % distance)
+            print("Angle = ", angle ,"Measured Distance = %.1f cm" % distance ,"Existence = ", objectex )
             # send main data database
             database_maindata()
             database_radar()
