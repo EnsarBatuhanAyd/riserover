@@ -89,7 +89,7 @@ def radar():
         
         # change the condition if the range is changed
         if distance != -1 and distance <= 50:
-            targets[angle] = Target(angle, distance)
+            targets[angle] = Target(angle, distance , objectex) 
             Target.objectex = 1
             
 
