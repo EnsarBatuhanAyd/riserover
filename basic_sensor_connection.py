@@ -248,7 +248,7 @@ if __name__ == '__main__':
             # distance = get_distancedata()
             lat,longi = get_gpsdata()
             temperature, humidity = get_tempdata()
-            distance = ultrasonicRead()
+            # distance = ultrasonicRead()
             # Check all class 
 
             print("Your Location =", lat , longi)
