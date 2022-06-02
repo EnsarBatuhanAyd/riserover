@@ -132,10 +132,10 @@ def database_maindata():
     cred = credentials.ApplicationDefault()
 
     cred = credentials.Certificate(
-    "./earthquake-dataset-firebase-adminsdk-5h31u-0bd9fb1990.json")
+    "./FirebaseCertificates/rover-maindata-firebase-adminsdk-poln2-9ee560d0a8.json")
 
     firebase_admin.initialize_app(cred,
-                              {'databaseURL': 'https://earthquake-dataset-default-rtdb.firebaseio.com/',
+                              {'databaseURL': 'https://rover-maindata-default-rtdb.firebaseio.com/',
                                'databaseAuthVariableOverride': None
                                })
     db = firestore.client()                               
@@ -151,28 +151,28 @@ def database_maindata():
     rf.add(data)                           
     return rf
 
-def database_radar():
-    cred = credentials.ApplicationDefault()
+# def database_radar():
+#     cred = credentials.ApplicationDefault()
 
-    cred = credentials.Certificate(
-    "./earthquake-dataset-firebase-adminsdk-5h31u-0bd9fb1990.json")
+#     cred = credentials.Certificate(
+#     "./FirebaseCertificates/rover-radardata-firebase-adminsdk-bqbn5-e702fdebc6.json")
 
-    firebase_admin.initialize_app(cred,
-                              {'databaseURL': 'https://earthquake-dataset-default-rtdb.firebaseio.com/',
-                               'databaseAuthVariableOverride': None
-                               })
-    db1 = firestore.client()                               
-    data={
-            "Angle": angle,
-            "Distance": distance,
-            "Objex": objex,
+#     firebase_admin.initialize_app(cred,
+#                               {'databaseURL': 'https://rover-radardata-default-rtdb.firebaseio.com/',
+#                                'databaseAuthVariableOverride': None
+#                                })
+#     db1 = firestore.client()                               
+#     data={
+#             "Angle": angle,
+#             "Distance": distance,
+#             "Objex": objex,
            
-          }
+#           }
 
-        #Firestore Database Sending 
-    rf=db1.collection("RoverRadarData")
-    rf.add(data)  
-    return 0
+#         #Firestore Database Sending 
+#     rf=db1.collection("RoverRadarData")
+#     rf.add(data)  
+#     return 0
 
 
 def get_tempdata():
@@ -238,7 +238,7 @@ if __name__ == '__main__':
             # distance = get_distancedata()
             lat,longi = get_gpsdata()
             temperature, humidity = get_tempdata()
-            radarvalues= radar()
+            distance = ultrasonicRead()
             # Check all class 
 
             print("Your Location =", lat , longi)
@@ -248,11 +248,11 @@ if __name__ == '__main__':
             # send main data database
             database_maindata(lat,longi,temperature,humidity)
 
-            print("Radar = ", radarvalues) 
-            angle , distance , objex = radar()
-            print ("angle :" , angle ,"distance :" , distance ,"objex :" , objex)
-            # send radar database they will merge with image processing
-            database_maindata(angle,distance,objex)
+            # print("Radar = ", radarvalues) 
+            # angle , distance , objex = radar()
+            # print ("angle :" , angle ,"distance :" , distance ,"objex :" , objex)
+            # # send radar database they will merge with image processing
+            # database_radar(angle,distance,objex)
 
             time.sleep(1)
            
