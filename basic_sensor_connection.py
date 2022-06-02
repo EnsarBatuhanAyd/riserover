@@ -120,7 +120,7 @@ def radar():
         servo.ChangeDutyCycle(dc)
 
         time.sleep(0.001)
-    return angle , distance ,objectex
+    return angle , distance , Target.objectex
         # detect if close is pressed to stop the program
         
     
