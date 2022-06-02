@@ -256,7 +256,7 @@ if __name__ == '__main__':
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
             # send main data database
-            database_maindata(lat,longi,temperature,humidity)
+            database_maindata()
 
             # print("Radar = ", radarvalues) 
             # angle , distance , objex = radar()
@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
         # Reset by pressing CTRL + C
     except KeyboardInterrupt:
-        servo.stop()
+        # servo.stop()
         GPIO.cleanup()
         print("Software Stopped!")
         
