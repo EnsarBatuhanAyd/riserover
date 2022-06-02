@@ -56,6 +56,7 @@ def ultrasonicRead(GPIO, TRIG, ECHO):
     GPIO.output(TRIG, True)
     time.sleep(0.0001)
     GPIO.output(TRIG, False)
+    start_time = time.time()
 
     # catch a signal
     error = 0
