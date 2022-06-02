@@ -35,14 +35,16 @@ targets = {}
 
 class Target:
     angle = -1
+    objectex = 0
     distance = -1
     time = -1.0
     color = ()
   
     # initalization
-    def __init__(self, angle, distance ):
+    def __init__(self, angle, distance ,objectex):
         self.angle = angle
         self.distance = distance
+        self.objectex = objectex
         self.time = time.time()
       
 def ultrasonicRead(GPIO, TRIG, ECHO):
@@ -88,6 +90,7 @@ def radar():
         # change the condition if the range is changed
         if distance != -1 and distance <= 50:
             targets[angle] = Target(angle, distance)
+            Target.objectex = 1
             
 
             
@@ -106,6 +109,8 @@ def radar():
         # change the condition if the range is changed
         if distance != -1 and distance <= 50:
             targets[angle] = Target(angle, distance)
+            Target.objectex = 1
+            
            
         
         print( angle, distance)
@@ -161,28 +166,38 @@ def database_maindata():
     # rf.add(data)                           
     return 
 
-# def database_radar():
-#     cred = credentials.ApplicationDefault()
+def database_radar():
+    config = {
+            "apiKey": "hTGQFFqFFfCT65ppUzA6MEJbYQf9GwKDKCwdUcrc",
+            "authDomain": "rover-radardata.firebaseapp.com",
+            "databaseURL": "https://rover-radardata-default-rtdb.firebaseio.com/",
+            "storageBucket": "rover-radardata.appspot.com"
+    }
 
-#     cred = credentials.Certificate(
-#     "./FirebaseCertificates/rover-radardata-firebase-adminsdk-bqbn5-e702fdebc6.json")
 
-#     firebase_admin.initialize_app(cred,
-#                               {'databaseURL': 'https://rover-radardata-default-rtdb.firebaseio.com/',
-#                                'databaseAuthVariableOverride': None
-#                                })
-#     db1 = firestore.client()                               
-#     data={
-#             "Angle": angle,
-#             "Distance": distance,
-#             "Objex": objex,
+    # cred = credentials.ApplicationDefault()
+
+    # cred = credentials.Certificate(
+    # "./FirebaseCertificates/rover-maindata-firebase-adminsdk-poln2-9ee560d0a8.json")
+
+    firebase= pyrebase.initialize_app(config)
+    db = firebase.database() 
+                                   
+    data={
+            "Angle": angle,
+            "Distance": distance,
+            "ObjectEx": Target.objectex,
            
-#           }
+          }
 
-#         #Firestore Database Sending 
-#     rf=db1.collection("RoverRadarData")
-#     rf.add(data)  
-#     return 0
+    db.child("datas").child("1-set").set(data)
+    db.child("datas").child("2-push").push(data)
+    
+
+    #     #Firestore Database Sending 
+    # rf=db.childcollection("RoverMainData")
+    # rf.add(data)                           
+    return 
 
 
 def get_tempdata():
@@ -248,16 +263,16 @@ if __name__ == '__main__':
             # distance = get_distancedata()
             lat,longi = get_gpsdata()
             temperature, humidity = get_tempdata()
-            # distance = ultrasonicRead()
+            angle , distance = radar()
             # Check all class 
 
             print("Your Location =", lat , longi)
-            # print("Measured Distance = %.1f cm" % distance)
             print("Temperature = ", temperature)
             print("Humidity = ", humidity)
+            print("Angle = ", angle ,"Measured Distance = %.1f cm" % distance)
             # send main data database
             database_maindata()
-
+            database_radar()
             # print("Radar = ", radarvalues) 
             # angle , distance , objex = radar()
             # print ("angle :" , angle ,"distance :" , distance ,"objex :" , objex)
