@@ -1,10 +1,10 @@
 # basic sensors integration
 from email.errors import ObsoleteHeaderDefect
 from xmlrpc.client import boolean
-import firebase_admin
+import pyrebase
 # from firebase_admin import db
-from firebase_admin import credentials
-from firebase_admin import firestore
+# from pyrebase import credentials
+# from pyrebase import firestore
 import serial
 import time
 import RPi.GPIO as GPIO
@@ -129,16 +129,22 @@ def convert_to_degrees(raw_value):
 
 
 def database_maindata():
-    cred = credentials.ApplicationDefault()
+    config = {
+            "apiKey": "ky1tzNYylmxZw4rWV4zm50ZjMnMStcNn1yf6DIxA",
+            "authDomain": "rover-maindata.firebaseapp.com",
+            "databaseURL": "https://rover-maindata-default-rtdb.firebaseio.com/",
+            "storageBucket": "rover-maindata.appspot.com"
+    }
 
-    cred = credentials.Certificate(
-    "./FirebaseCertificates/rover-maindata-firebase-adminsdk-poln2-9ee560d0a8.json")
 
-    firebase_admin.initialize_app(cred,
-                              {'databaseURL': 'https://rover-maindata-default-rtdb.firebaseio.com/',
-                               'databaseAuthVariableOverride': None
-                               })
-    db = firestore.client()                               
+    # cred = credentials.ApplicationDefault()
+
+    # cred = credentials.Certificate(
+    # "./FirebaseCertificates/rover-maindata-firebase-adminsdk-poln2-9ee560d0a8.json")
+
+    firebase= pyrebase.initialize_app(config)
+    db = firebase.database() 
+                                   
     data={
             "Latitude": lat,
             "Longitude": longi,
@@ -146,10 +152,14 @@ def database_maindata():
             "Temperature": temperature,
           }
 
-        #Firestore Database Sending 
-    rf=db.collection("RoverMainData")
-    rf.add(data)                           
-    return rf
+    db.child("datas").child("1-set").set(data)
+    db.child("datas").child("2-push").push(data)
+    
+
+    #     #Firestore Database Sending 
+    # rf=db.childcollection("RoverMainData")
+    # rf.add(data)                           
+    return 
 
 # def database_radar():
 #     cred = credentials.ApplicationDefault()
